@@ -1,7 +1,7 @@
 import { useAuthStore } from '@/stores/authStore';
 import { useSwaps } from '@/hooks/useSwaps';
 import { useDashboardAnalytics } from '@/hooks/useAnalytics';
-import { Clock, ArrowRightLeft, Star, TrendingUp, TrendingDown, BookOpen } from 'lucide-react';
+import { Clock, ArrowRight, ArrowRightLeft, Star, TrendingUp, TrendingDown, BookOpen } from 'lucide-react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell
@@ -107,26 +107,51 @@ export default function DashboardPage() {
         <div className="bg-white border text-left border-gray-200 rounded-xl p-6 shadow-sm mt-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
              <ArrowRightLeft size={20} className="text-primary-500" />
-             Ongoing Escrow Swaps
+             Ongoing Lessons & Exchanges
           </h2>
           <div className="space-y-3">
             {activeSwaps.map((swap) => (
               <div key={swap.id} className="bg-gray-50 border border-gray-100 rounded-lg p-4 flex justify-between items-center transition hover:shadow-sm">
                 <div>
-                  <p className="font-medium text-gray-900">
-                    {swap.offeredSkillTitle} ↔ {swap.requestedSkillTitle}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    with {swap.requesterName === fullName ? swap.receiverName : swap.requesterName}
-                  </p>
+                  {(() => {
+                    const lessonType = swap.lessonType ?? 'OneWay';
+                    const isExchange = lessonType === 'Exchange';
+                    const teacherName = swap.teacherName ?? swap.receiverName;
+                    const learnerName = swap.learnerName ?? swap.requesterName;
+                    return (
+                      <>
+                        <p className="font-medium text-gray-900 flex items-center gap-1">
+                          {isExchange ? (
+                            <>
+                              {swap.offeredSkillTitle} <ArrowRightLeft size={14} className="text-gray-400" /> {swap.requestedSkillTitle}
+                            </>
+                          ) : (
+                            <>
+                              {teacherName} <ArrowRight size={14} className="text-gray-400" /> {learnerName}
+                            </>
+                          )}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {isExchange ? 'Teaches each other' : `Lesson: ${swap.requestedSkillTitle}`}
+                        </p>
+                      </>
+                    );
+                  })()}
                 </div>
-                <span className={`text-xs font-semibold px-3 py-1.5 rounded-full ${
-                  swap.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 
-                  swap.status === 'Accepted' ? 'bg-blue-100 text-blue-700' :
-                  'bg-indigo-100 text-indigo-700'
+                <div className="flex flex-col items-end gap-2">
+                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+                    (swap.lessonType ?? 'OneWay') === 'Exchange' ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'
                   }`}>
-                  {swap.status.toUpperCase()}
-                </span>
+                    {(swap.lessonType ?? 'OneWay') === 'Exchange' ? 'Skill Exchange' : 'One-Way Lesson'}
+                  </span>
+                  <span className={`text-xs font-semibold px-3 py-1.5 rounded-full ${
+                    swap.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 
+                    swap.status === 'Accepted' ? 'bg-blue-100 text-blue-700' :
+                    'bg-indigo-100 text-indigo-700'
+                    }`}>
+                    {swap.status.toUpperCase()}
+                  </span>
+                </div>
               </div>
             ))}
           </div>

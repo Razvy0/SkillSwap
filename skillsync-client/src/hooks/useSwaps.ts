@@ -1,5 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { swapService, CreateSwapDto, UpdateSwapStatusDto, ProposeTimeSlotDto, PickTimeDto } from '@/services/swapService';
+import {
+  swapService,
+  CreateSwapDto,
+  UpdateSwapStatusDto,
+  ProposeTimeSlotDto,
+  PickTimeDto,
+  ProposeScheduleDto,
+  RequestScheduleChangeDto,
+} from '@/services/swapService';
 
 export function useSwaps() {
   return useQuery({
@@ -39,6 +47,50 @@ export function usePickTime() {
   return useMutation({
     mutationFn: ({ id, dto }: { id: number; dto: PickTimeDto }) =>
       swapService.pickTime(id, dto),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['swaps'] }),
+  });
+}
+
+export function useProposeSchedule() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, dto }: { id: number; dto: ProposeScheduleDto }) =>
+      swapService.proposeSchedule(id, dto),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['swaps'] }),
+  });
+}
+
+export function useConfirmSchedule() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => swapService.confirmSchedule(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['swaps'] }),
+  });
+}
+
+export function useRequestScheduleChange() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, dto }: { id: number; dto: RequestScheduleChangeDto }) =>
+      swapService.requestScheduleChange(id, dto),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['swaps'] }),
+  });
+}
+
+export function useValidateSession() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, sessionId }: { id: number; sessionId: number }) =>
+      swapService.validateSession(id, sessionId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['swaps'] }),
+  });
+}
+
+export function useInvalidateSession() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, sessionId }: { id: number; sessionId: number }) =>
+      swapService.invalidateSession(id, sessionId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['swaps'] }),
   });
 }

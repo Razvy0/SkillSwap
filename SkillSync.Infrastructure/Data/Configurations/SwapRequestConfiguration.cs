@@ -9,6 +9,10 @@ public class SwapRequestConfiguration : IEntityTypeConfiguration<SwapRequest>
     public void Configure(EntityTypeBuilder<SwapRequest> builder)
     {
         builder.Property(s => s.Status).HasConversion<string>();
+        builder.Property(s => s.LessonType).HasConversion<string>();
+        builder.Property(s => s.RequestedCadence).HasConversion<string>();
+        builder.Property(s => s.OfferedCadence).HasConversion<string>();
+        builder.Property(s => s.TwoWayScheduleMode).HasConversion<string>();
 
         builder.HasOne(s => s.Requester)
             .WithMany()
@@ -23,7 +27,8 @@ public class SwapRequestConfiguration : IEntityTypeConfiguration<SwapRequest>
         builder.HasOne(s => s.OfferedSkill)
             .WithMany()
             .HasForeignKey(s => s.OfferedSkillId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired(false);
 
         builder.HasOne(s => s.RequestedSkill)
             .WithMany()

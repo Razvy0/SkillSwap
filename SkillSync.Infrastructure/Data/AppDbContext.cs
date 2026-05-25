@@ -11,6 +11,8 @@ public class AppDbContext : IdentityDbContext<AppUser>
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Skill> Skills => Set<Skill>();
     public DbSet<SwapRequest> SwapRequests => Set<SwapRequest>();
+    public DbSet<SwapSchedule> SwapSchedules => Set<SwapSchedule>();
+    public DbSet<SwapSession> SwapSessions => Set<SwapSession>();
     public DbSet<Message> Messages => Set<Message>();
     public DbSet<Review> Reviews => Set<Review>();
     public DbSet<TimeTransaction> TimeTransactions => Set<TimeTransaction>();

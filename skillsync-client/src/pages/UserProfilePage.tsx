@@ -22,6 +22,34 @@ export default function UserProfilePage() {
     const offeringSkills = profile.skills.filter((s) => s.isOffering);
     const seekingSkills = profile.skills.filter((s) => !s.isOffering);
 
+    const getSwapDirectionMeta = (swap: ReviewableSwap) => {
+        const lessonType = swap.lessonType ?? 'OneWay';
+        if (lessonType === 'Exchange') {
+            return {
+                badge: 'Skill Exchange',
+                direction: 'Both teach each other',
+                arrow: '⇄',
+            };
+        }
+
+        const teacherLabel = swap.teacherId
+            ? swap.teacherId === currentUserId
+                ? 'You'
+                : profile.fullName
+            : 'Teacher';
+        const learnerLabel = swap.learnerId
+            ? swap.learnerId === currentUserId
+                ? 'You'
+                : profile.fullName
+            : 'Learner';
+
+        return {
+            badge: 'One-Way Lesson',
+            direction: `${teacherLabel} → ${learnerLabel}`,
+            arrow: '→',
+        };
+    };
+
     return (
         <div className="max-w-3xl mx-auto">
             <Link to="/explore" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-6">
@@ -68,17 +96,43 @@ export default function UserProfilePage() {
                                     <Star size={16} /> Leave Review ({reviewableSwaps.length})
                                 </button>
                                 <div className="absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 hidden group-hover:block min-w-[260px]">
-                                    {reviewableSwaps.map((s) => (
-                                        <button
-                                            key={s.swapId}
-                                            onClick={() => setReviewSwap(s)}
-                                            className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 border-b border-gray-100 last:border-0"
-                                        >
-                                            <span className="font-medium text-gray-900">{s.offeredSkillTitle}</span>
-                                            <span className="text-gray-400 mx-1">⇄</span>
-                                            <span className="font-medium text-gray-900">{s.requestedSkillTitle}</span>
-                                        </button>
-                                    ))}
+                                    {reviewableSwaps.map((s) => {
+                                        const meta = getSwapDirectionMeta(s);
+                                        const isExchange = (s.lessonType ?? 'OneWay') === 'Exchange';
+                                        return (
+                                            <button
+                                                key={s.swapId}
+                                                onClick={() => setReviewSwap(s)}
+                                                className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 border-b border-gray-100 last:border-0"
+                                            >
+                                                <div className="flex items-center gap-1.5">
+                                                    {isExchange ? (
+                                                        <>
+                                                            <span className="font-medium text-gray-900">{s.offeredSkillTitle}</span>
+                                                            <span className="text-gray-400">{meta.arrow}</span>
+                                                            <span className="font-medium text-gray-900">{s.requestedSkillTitle}</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <span className="font-medium text-gray-900">Lesson: {s.requestedSkillTitle}</span>
+                                                        </>
+                                                    )}
+                                                </div>
+                                                <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
+                                                    <span
+                                                        className={
+                                                            meta.badge === 'Skill Exchange'
+                                                                ? 'rounded-full bg-indigo-100 px-2 py-0.5 text-indigo-700'
+                                                                : 'rounded-full bg-emerald-100 px-2 py-0.5 text-emerald-700'
+                                                        }
+                                                    >
+                                                        {meta.badge}
+                                                    </span>
+                                                    <span>{meta.direction}</span>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}

@@ -98,11 +98,14 @@ function ChatPane({ otherUserId, onBack }: { otherUserId: string; onBack: () => 
     const markAsRead = useMarkAsRead();
     const [text, setText] = useState('');
     const bottomRef = useRef<HTMLDivElement>(null);
+    const hasUnreadFromOther =
+        messages?.some((msg) => msg.senderId === otherUserId && !msg.isRead) ?? false;
 
-    // Mark as read when opening conversation
+    // Mark as read when opening or receiving new messages in this conversation
     useEffect(() => {
+        if (!otherUserId || !hasUnreadFromOther || markAsRead.isPending) return;
         markAsRead.mutate(otherUserId);
-    }, [otherUserId]);
+    }, [otherUserId, hasUnreadFromOther, markAsRead]);
 
     // Scroll to bottom on new messages
     useEffect(() => {

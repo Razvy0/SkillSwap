@@ -10,6 +10,7 @@ export default function ProfilePage() {
   const { data: mySkills } = useMySkills();
   const deleteSkill = useDeleteSkill();
   const updateProfile = useUpdateProfile();
+  const [deleteError, setDeleteError] = useState('');
 
   const [showAddSkill, setShowAddSkill] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -113,12 +114,19 @@ export default function ProfilePage() {
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold text-gray-900">Your Skills</h2>
         <button
-          onClick={() => setShowAddSkill(true)}
+          onClick={() => {
+            setDeleteError('');
+            setShowAddSkill(true);
+          }}
           className="flex items-center gap-1 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
         >
           <Plus size={16} /> Add Skill
         </button>
       </div>
+
+      {deleteError && (
+        <p className="mb-3 text-sm text-red-600">{deleteError}</p>
+      )}
 
       {mySkills && mySkills.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -139,7 +147,19 @@ export default function ProfilePage() {
                   {s.isOffering ? 'Offering' : 'Seeking'}
                 </span>
                 <button
-                  onClick={() => deleteSkill.mutate(s.id)}
+                  onClick={() =>
+                    deleteSkill.mutate(s.id, {
+                      onSuccess: () => setDeleteError(''),
+                      onError: (error: any) => {
+                        const apiMessage = error?.response?.data?.message as string | undefined;
+                        if (apiMessage?.toLowerCase().includes('active swap')) {
+                          setDeleteError('This skill is part of an active swap and can’t be removed right now.');
+                          return;
+                        }
+                        setDeleteError(apiMessage || 'Failed to remove skill');
+                      }
+                    })
+                  }
                   className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                   title="Remove skill"
                 >

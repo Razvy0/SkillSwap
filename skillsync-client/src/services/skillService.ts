@@ -7,6 +7,8 @@ export interface Skill {
   description?: string;
   proficiencyLevel: string;
   isOffering: boolean;
+  lessonMode: LessonMode;
+  requiredSessions: number;
   categoryName: string;
   categoryId: number;
   userId: string;
@@ -14,12 +16,16 @@ export interface Skill {
   createdAt: string;
 }
 
+export type LessonMode = 'SingleOnly' | 'RecurringOnly' | 'Both';
+
 export interface CreateSkillDto {
   title: string;
   description?: string;
   categoryId: number;
   proficiencyLevel: number;
   isOffering: boolean;
+  lessonMode: LessonMode;
+  requiredSessions: number;
 }
 
 export interface SkillQueryParams {

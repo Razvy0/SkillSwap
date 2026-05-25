@@ -1,4 +1,5 @@
 import api from './api';
+import type { LessonType } from './swapService';
 
 export interface ReviewDto {
     id: number;
@@ -20,6 +21,9 @@ export interface CreateReviewDto {
 
 export interface ReviewableSwap {
     swapId: number;
+    lessonType: LessonType;
+    teacherId?: string | null;
+    learnerId?: string | null;
     offeredSkillTitle: string;
     requestedSkillTitle: string;
     completedAt: string;

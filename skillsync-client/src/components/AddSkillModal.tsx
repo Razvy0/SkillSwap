@@ -15,6 +15,8 @@ export default function AddSkillModal({ onClose }: Props) {
     const [categoryId, setCategoryId] = useState<number>(0);
     const [proficiencyLevel, setProficiencyLevel] = useState(0);
     const [isOffering, setIsOffering] = useState(true);
+    const [lessonMode, setLessonMode] = useState<'SingleOnly' | 'RecurringOnly' | 'Both'>('Both');
+    const [requiredSessions, setRequiredSessions] = useState(1);
 
     const { data: categories } = useCategories();
     const createSkill = useCreateSkill();
@@ -22,9 +24,26 @@ export default function AddSkillModal({ onClose }: Props) {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         createSkill.mutate(
-            { title, description: description || undefined, categoryId, proficiencyLevel, isOffering },
+            {
+                title,
+                description: description || undefined,
+                categoryId,
+                proficiencyLevel,
+                isOffering,
+                lessonMode,
+                requiredSessions,
+            },
             { onSuccess: () => onClose() }
         );
+    };
+
+    const handleLessonModeChange = (value: 'SingleOnly' | 'RecurringOnly' | 'Both') => {
+        setLessonMode(value);
+        if (value === 'SingleOnly') {
+            setRequiredSessions(1);
+        } else if (value === 'RecurringOnly' && requiredSessions < 2) {
+            setRequiredSessions(2);
+        }
     };
 
     return (
@@ -112,6 +131,37 @@ export default function AddSkillModal({ onClose }: Props) {
                             </label>
                         </div>
                     </div>
+
+                    {isOffering && (
+                        <>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Lesson mode</label>
+                                <select
+                                    value={lessonMode}
+                                    onChange={(e) => handleLessonModeChange(e.target.value as typeof lessonMode)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                                >
+                                    <option value="SingleOnly">Single session only</option>
+                                    <option value="RecurringOnly">Weekly recurring only</option>
+                                    <option value="Both">Single or recurring</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Required sessions</label>
+                                <input
+                                    type="number"
+                                    min={lessonMode === 'RecurringOnly' ? 2 : 1}
+                                    max={8}
+                                    value={requiredSessions}
+                                    onChange={(e) => setRequiredSessions(Math.min(8, Math.max(1, Number(e.target.value))))}
+                                    disabled={lessonMode === 'SingleOnly'}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none disabled:bg-gray-100"
+                                />
+                                <p className="mt-1 text-xs text-gray-500">Max 8 sessions. Single-only skills are always 1 session.</p>
+                            </div>
+                        </>
+                    )}
 
                     {createSkill.isError && (
                         <p className="text-sm text-red-600">

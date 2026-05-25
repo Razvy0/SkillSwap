@@ -11,6 +11,8 @@ public class Skill
     public string? Description { get; set; }
     public ProficiencyLevel ProficiencyLevel { get; set; }
     public bool IsOffering { get; set; }
+    public LessonMode LessonMode { get; set; } = LessonMode.Both;
+    public int RequiredSessions { get; set; } = 1;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public AppUser User { get; set; } = null!;

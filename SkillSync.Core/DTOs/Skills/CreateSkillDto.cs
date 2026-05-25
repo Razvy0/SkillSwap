@@ -13,4 +13,7 @@ public class CreateSkillDto
     public int CategoryId { get; set; }
     public ProficiencyLevel ProficiencyLevel { get; set; } = ProficiencyLevel.Beginner;
     public bool IsOffering { get; set; } = true;
+    public LessonMode LessonMode { get; set; } = LessonMode.Both;
+    [Range(1, 8)]
+    public int RequiredSessions { get; set; } = 1;
 }

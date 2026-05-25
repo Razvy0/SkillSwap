@@ -1,6 +1,7 @@
 using SkillSync.Core.DTOs.Common;
 using SkillSync.Core.DTOs.Skills;
 using SkillSync.Core.Entities;
+using SkillSync.Core.Enums;
 using SkillSync.Core.Exceptions;
 using SkillSync.Core.Interfaces.Repositories;
 using SkillSync.Core.Interfaces.Services;
@@ -11,11 +12,13 @@ public class SkillService : ISkillService
 {
     private readonly ISkillRepository _skillRepo;
     private readonly ICategoryRepository _categoryRepo;
+    private readonly ISwapRepository _swapRepo;
 
-    public SkillService(ISkillRepository skillRepo, ICategoryRepository categoryRepo)
+    public SkillService(ISkillRepository skillRepo, ICategoryRepository categoryRepo, ISwapRepository swapRepo)
     {
         _skillRepo = skillRepo;
         _categoryRepo = categoryRepo;
+        _swapRepo = swapRepo;
     }
 
     public async Task<PagedResult<SkillDto>> GetSkillsAsync(SkillQueryParams queryParams)
@@ -43,6 +46,15 @@ public class SkillService : ISkillService
         if (!await _categoryRepo.ExistsAsync(dto.CategoryId))
             throw new NotFoundException("Category", dto.CategoryId);
 
+        if (dto.RequiredSessions < 1 || dto.RequiredSessions > 8)
+            throw new BadRequestException("Required sessions must be between 1 and 8.");
+
+        if (dto.LessonMode == LessonMode.SingleOnly && dto.RequiredSessions != 1)
+            throw new BadRequestException("Single-only skills must require exactly 1 session.");
+
+        if (dto.LessonMode == LessonMode.RecurringOnly && dto.RequiredSessions < 2)
+            throw new BadRequestException("Recurring-only skills must require at least 2 sessions.");
+
         var skill = new Skill
         {
             UserId = userId,
@@ -50,7 +62,9 @@ public class SkillService : ISkillService
             Title = dto.Title,
             Description = dto.Description,
             ProficiencyLevel = dto.ProficiencyLevel,
-            IsOffering = dto.IsOffering
+            IsOffering = dto.IsOffering,
+            LessonMode = dto.LessonMode,
+            RequiredSessions = dto.RequiredSessions
         };
 
         await _skillRepo.AddAsync(skill);
@@ -64,6 +78,9 @@ public class SkillService : ISkillService
 
         if (skill.UserId != userId)
             throw new UnauthorizedException("You can only delete your own skills.");
+
+        if (await _swapRepo.HasActiveSwapForSkillAsync(id))
+            throw new BadRequestException("You cannot delete a skill while it is part of an active swap.");
 
         await _skillRepo.DeleteAsync(skill);
     }
@@ -81,6 +98,8 @@ public class SkillService : ISkillService
         Description = s.Description,
         ProficiencyLevel = s.ProficiencyLevel,
         IsOffering = s.IsOffering,
+        LessonMode = s.LessonMode,
+        RequiredSessions = s.RequiredSessions,
         CategoryName = s.Category?.Name ?? "",
         CategoryId = s.CategoryId,
         UserId = s.UserId,

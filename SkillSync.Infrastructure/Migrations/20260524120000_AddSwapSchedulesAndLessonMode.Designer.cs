@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SkillSync.Infrastructure.Data;
@@ -11,9 +12,10 @@ using SkillSync.Infrastructure.Data;
 namespace SkillSync.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260524120000_AddSwapSchedulesAndLessonMode")]
+    partial class AddSwapSchedulesAndLessonMode
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -494,7 +496,6 @@ namespace SkillSync.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<int>("RequiredSessions")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
                         .HasDefaultValue(1);
 
@@ -547,12 +548,12 @@ namespace SkillSync.Infrastructure.Migrations
                     b.Property<bool>("ReceiverValidated")
                         .HasColumnType("boolean");
 
+                    b.Property<int>("RequestedSkillId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("RequestedCadence")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<int>("RequestedSkillId")
-                        .HasColumnType("integer");
 
                     b.Property<string>("RequesterId")
                         .IsRequired()
@@ -560,6 +561,10 @@ namespace SkillSync.Infrastructure.Migrations
 
                     b.Property<bool>("RequesterValidated")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("TwoWayScheduleMode")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("ScheduledDate")
                         .HasColumnType("timestamp with time zone");
@@ -576,10 +581,6 @@ namespace SkillSync.Infrastructure.Migrations
 
                     b.Property<DateTime?>("TimeSlotStart")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("TwoWayScheduleMode")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -607,19 +608,6 @@ namespace SkillSync.Infrastructure.Migrations
 
                     b.Property<string>("Cadence")
                         .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ChangeRequestNote")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<DateTime?>("ChangeRequestTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("ChangeRequestedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ChangeRequestedById")
                         .HasColumnType("text");
 
                     b.Property<DateTime>("ProposedAt")
@@ -729,15 +717,14 @@ namespace SkillSync.Infrastructure.Migrations
                     b.Property<int?>("SwapRequestId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("SwapSessionId")
-                        .HasColumnType("integer");
-
                     b.Property<int>("TransactionType")
                         .HasColumnType("integer");
 
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("text");
+                    b.Property<int?>("SwapSessionId")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -1012,15 +999,6 @@ namespace SkillSync.Infrastructure.Migrations
                     b.Navigation("Disputes");
 
                     b.Navigation("Reviews");
-
-                    b.Navigation("Schedules");
-
-                    b.Navigation("Sessions");
-                });
-
-            modelBuilder.Entity("SkillSync.Core.Entities.SwapSchedule", b =>
-                {
-                    b.Navigation("Sessions");
                 });
 #pragma warning restore 612, 618
         }

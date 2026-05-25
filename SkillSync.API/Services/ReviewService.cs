@@ -99,6 +99,9 @@ public class ReviewService : IReviewService
                 result.Add(new ReviewableSwapDto
                 {
                     SwapId = swap.Id,
+                    LessonType = swap.LessonType,
+                    TeacherId = swap.TeacherId,
+                    LearnerId = swap.LearnerId,
                     OfferedSkillTitle = swap.OfferedSkill?.Title ?? "",
                     RequestedSkillTitle = swap.RequestedSkill?.Title ?? "",
                     CompletedAt = swap.CreatedAt

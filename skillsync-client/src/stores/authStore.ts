@@ -8,6 +8,7 @@ interface AuthState {
   fullName: string | null;
   isAuthenticated: boolean;
   lastSeenSwapsAt: string | null;
+  lastSeenSwapsByUser: Record<string, string>;
   setAuth: (data: { token: string; userId: string; email: string; fullName: string }) => void;
   setLastSeenSwapsAt: (value: string) => void;
   logout: () => void;
@@ -15,22 +16,39 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       token: null,
       userId: null,
       email: null,
       fullName: null,
       isAuthenticated: false,
       lastSeenSwapsAt: null,
-      setAuth: (data) =>
+      lastSeenSwapsByUser: {},
+      setAuth: (data) => {
+        const { lastSeenSwapsByUser, lastSeenSwapsAt: storedLastSeen } = get();
+        const hasPerUserMap = Object.keys(lastSeenSwapsByUser).length > 0;
+        const lastSeenSwapsAt =
+          lastSeenSwapsByUser[data.userId] ?? (hasPerUserMap ? null : storedLastSeen);
         set({
           token: data.token,
           userId: data.userId,
           email: data.email,
           fullName: data.fullName,
           isAuthenticated: true,
-        }),
-      setLastSeenSwapsAt: (value) => set({ lastSeenSwapsAt: value }),
+          lastSeenSwapsAt,
+        });
+      },
+      setLastSeenSwapsAt: (value) => {
+        const userId = get().userId;
+        if (!userId) {
+          set({ lastSeenSwapsAt: value });
+          return;
+        }
+        set((state) => ({
+          lastSeenSwapsAt: value,
+          lastSeenSwapsByUser: { ...state.lastSeenSwapsByUser, [userId]: value },
+        }));
+      },
       logout: () =>
         set({
           token: null,
