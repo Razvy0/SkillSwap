@@ -19,6 +19,12 @@ public class UserRepository : IUserRepository
             .Include(u => u.Skills).ThenInclude(s => s.Category)
             .FirstOrDefaultAsync(u => u.Id == id);
 
+    public async Task<IEnumerable<AppUser>> GetByIdsWithSkillsAsync(IEnumerable<string> ids)
+        => await _context.Users
+            .Include(u => u.Skills).ThenInclude(s => s.Category)
+            .Where(u => ids.Contains(u.Id))
+            .ToListAsync();
+
     public async Task UpdateAsync(AppUser user)
     {
         _context.Users.Update(user);
@@ -59,5 +65,12 @@ public class UserRepository : IUserRepository
             .ToListAsync();
             
         return (items, totalCount);
+    }
+
+    public async Task<IEnumerable<AppUser>> GetAllAsync()
+    {
+        return await _context.Users
+            .AsNoTracking()
+            .ToListAsync();
     }
 }

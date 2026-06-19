@@ -10,6 +10,7 @@ import SwapsPage from '@/pages/SwapsPage';
 import MessagesPage from '@/pages/MessagesPage';
 import UserProfilePage from '@/pages/UserProfilePage';
 import DisputesPage from '@/pages/DisputesPage';
+import RecommendationsPage from '@/pages/RecommendationsPage';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -30,6 +31,7 @@ export default function App() {
         }
       >
         <Route index element={<DashboardPage />} />
+        <Route path="recommendations" element={<RecommendationsPage />} />
         <Route path="explore" element={<ExplorePage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="swaps" element={<SwapsPage />} />

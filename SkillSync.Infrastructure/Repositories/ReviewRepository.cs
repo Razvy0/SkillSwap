@@ -23,6 +23,9 @@ public class ReviewRepository : Repository<Review>, IReviewRepository
         return reviews.Count > 0 ? reviews.Average(r => r.Score) : 0;
     }
 
+    public async Task<int> GetReviewCountAsync(string userId)
+        => await _dbSet.CountAsync(r => r.RevieweeId == userId);
+
     public async Task<bool> HasReviewedSwapAsync(string reviewerId, int swapRequestId)
         => await _dbSet.AnyAsync(r => r.ReviewerId == reviewerId && r.SwapRequestId == swapRequestId);
 }

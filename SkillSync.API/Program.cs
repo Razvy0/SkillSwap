@@ -42,6 +42,8 @@ if (Environment.GetEnvironmentVariable("JWT_ISSUER") is { Length: > 0 } jwtIssue
     builder.Configuration["Jwt:Issuer"] = jwtIssuer;
 if (Environment.GetEnvironmentVariable("JWT_AUDIENCE") is { Length: > 0 } jwtAudience)
     builder.Configuration["Jwt:Audience"] = jwtAudience;
+if (Environment.GetEnvironmentVariable("RECOMMENDATIONS_SERVICE_URL") is { Length: > 0 } recServiceUrl)
+    builder.Configuration["RecommendationsService:BaseUrl"] = recServiceUrl;
 
 // ---------- EF Core ----------
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -127,7 +129,15 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ITimeTransactionService, TimeTransactionService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<IDisputeService, DisputeService>();
+builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 builder.Services.AddScoped<DbSeeder>();
+
+builder.Services.AddHttpClient("RecommendationsService", (sp, client) =>
+{
+    var baseUrl = sp.GetRequiredService<IConfiguration>()["RecommendationsService:BaseUrl"];
+    if (!string.IsNullOrWhiteSpace(baseUrl))
+        client.BaseAddress = new Uri(baseUrl);
+});
 
 // ---------- SignalR + Controllers ----------
 builder.Services.AddSignalR();
