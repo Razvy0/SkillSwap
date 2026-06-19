@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 load_dotenv()  # This loads the variables from the .env file into os.getenv
 
-app = FastAPI(title="SkillSync Recommendations Service")
+app = FastAPI(title="SkillSwap Recommendations Service")
 
 
 class RecommendationRequest(BaseModel):
