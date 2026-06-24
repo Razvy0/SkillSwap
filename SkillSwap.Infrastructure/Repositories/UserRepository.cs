@@ -39,21 +39,47 @@ public class UserRepository : IUserRepository
 
         if (!string.IsNullOrWhiteSpace(name) && !string.IsNullOrWhiteSpace(skill))
         {
-            query = query.Where(u =>
-                u.FullName.ToLower().Contains(name.ToLower())
-                || u.Skills.Any(s =>
-                    s.Title.ToLower().Contains(skill.ToLower())
-                    || s.Category.Name.ToLower().Contains(skill.ToLower())));
+            var n = name.ToLower();
+            var s = skill.ToLower();
+            
+            if (n.Length < 3)
+            {
+                if (s.Length < 3)
+                {
+                    query = query.Where(u => u.FullName.ToLower().StartsWith(n) || u.Skills.Any(sk => sk.Title.ToLower().StartsWith(s)));
+                }
+                else
+                {
+                    query = query.Where(u => u.FullName.ToLower().StartsWith(n) || u.Skills.Any(sk => sk.Title.ToLower().Contains(s) || sk.Category.Name.ToLower().Contains(s)));
+                }
+            }
+            else
+            {
+                if (s.Length < 3)
+                {
+                    query = query.Where(u => u.FullName.ToLower().Contains(n) || u.Skills.Any(sk => sk.Title.ToLower().StartsWith(s)));
+                }
+                else
+                {
+                    query = query.Where(u => u.FullName.ToLower().Contains(n) || u.Skills.Any(sk => sk.Title.ToLower().Contains(s) || sk.Category.Name.ToLower().Contains(s)));
+                }
+            }
         }
         else if (!string.IsNullOrWhiteSpace(name))
         {
-            query = query.Where(u => u.FullName.ToLower().Contains(name.ToLower()));
+            var n = name.ToLower();
+            if (n.Length < 3)
+                query = query.Where(u => u.FullName.ToLower().StartsWith(n));
+            else
+                query = query.Where(u => u.FullName.ToLower().Contains(n));
         }
         else if (!string.IsNullOrWhiteSpace(skill))
         {
-            query = query.Where(u => u.Skills.Any(s =>
-                s.Title.ToLower().Contains(skill.ToLower())
-                || s.Category.Name.ToLower().Contains(skill.ToLower())));
+            var s = skill.ToLower();
+            if (s.Length < 3)
+                query = query.Where(u => u.Skills.Any(sk => sk.Title.ToLower().StartsWith(s)));
+            else
+                query = query.Where(u => u.Skills.Any(sk => sk.Title.ToLower().Contains(s) || sk.Category.Name.ToLower().Contains(s)));
         }
 
         var totalCount = await query.CountAsync();

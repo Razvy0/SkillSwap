@@ -21,8 +21,18 @@ public class SkillRepository : Repository<Skill>, ISkillRepository
             query = query.Where(s => s.Category.Name.ToLower() == category.ToLower());
 
         if (!string.IsNullOrWhiteSpace(search))
-            query = query.Where(s => s.Title.ToLower().Contains(search.ToLower())
-                || (s.Description != null && s.Description.ToLower().Contains(search.ToLower())));
+        {
+            var s = search.ToLower();
+            if (s.Length < 3)
+            {
+                query = query.Where(sk => sk.Title.ToLower().StartsWith(s));
+            }
+            else
+            {
+                query = query.Where(sk => sk.Title.ToLower().Contains(s)
+                    || (sk.Description != null && sk.Description.ToLower().Contains(s)));
+            }
+        }
 
         if (isOffering.HasValue)
             query = query.Where(s => s.IsOffering == isOffering.Value);
