@@ -9,18 +9,46 @@ namespace SkillSwap.Infrastructure.Data;
 public class DbSeeder
 {
     private readonly AppDbContext _context;
+    private readonly UserManager<AppUser> _userManager;
+    private readonly RoleManager<IdentityRole> _roleManager;
 
-    public DbSeeder(AppDbContext context)
+    public DbSeeder(AppDbContext context, UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager)
     {
         _context = context;
+        _userManager = userManager;
+        _roleManager = roleManager;
     }
 
     public async Task SeedAsync()
     {
         await _context.Database.EnsureCreatedAsync();
 
+        // Seed Roles
+        if (!await _roleManager.RoleExistsAsync("Admin"))
+        {
+            await _roleManager.CreateAsync(new IdentityRole("Admin"));
+        }
+        if (!await _roleManager.RoleExistsAsync("User"))
+        {
+            await _roleManager.CreateAsync(new IdentityRole("User"));
+        }
+
+        // Seed Admin User
+        if (await _userManager.FindByEmailAsync("admin@skillswap.com") == null)
+        {
+            var adminUser = new AppUser
+            {
+                UserName = "admin@skillswap.com",
+                Email = "admin@skillswap.com",
+                FullName = "System Admin",
+                EmailConfirmed = true
+            };
+            await _userManager.CreateAsync(adminUser, "Admin123!");
+            await _userManager.AddToRoleAsync(adminUser, "Admin");
+        }
+
         // Check if database is already seeded via Users
-        if (_context.Users.Any()) return;
+        if (_context.Users.Count() > 1) return; // Allow for the admin user to exist
 
         // Fetch Categories which are seeded inherently by the EF Migration
         var categories = _context.Categories.ToList();

@@ -32,4 +32,13 @@ public class DisputeRepository : Repository<Dispute>, IDisputeRepository
             .Where(d => d.SwapRequestId == swapRequestId)
             .ToListAsync();
     }
+
+    public override async Task<IEnumerable<Dispute>> GetAllAsync()
+    {
+        return await _context.Disputes
+            .Include(d => d.Reporter)
+            .Include(d => d.ReportedUser)
+            .OrderByDescending(d => d.CreatedAt)
+            .ToListAsync();
+    }
 }

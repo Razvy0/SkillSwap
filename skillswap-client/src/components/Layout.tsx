@@ -2,6 +2,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { useUnreadCount } from '@/hooks/useMessages';
 import { useSwaps } from '@/hooks/useSwaps';
+import { Shield } from 'lucide-react';
 import { Home, Compass, Repeat, User, LogOut, MessageSquare, AlertTriangle, Sparkles } from 'lucide-react';
 
 const navItems = [
@@ -15,7 +16,7 @@ const navItems = [
 ];
 
 export default function Layout() {
-  const { fullName, logout } = useAuthStore();
+  const { fullName, logout, role } = useAuthStore();
   const userId = useAuthStore((s) => s.userId);
   const lastSeenSwapsAt = useAuthStore((s) => s.lastSeenSwapsAt);
   const location = useLocation();
@@ -66,6 +67,19 @@ export default function Layout() {
               </Link>
             );
           })}
+          {role === 'Admin' && (
+            <Link
+              to="/admin/disputes"
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                location.pathname.startsWith('/admin')
+                  ? 'bg-purple-50 text-purple-700'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <Shield size={18} />
+              Admin Panel
+            </Link>
+          )}
         </nav>
         <div className="pt-4 border-t border-gray-200">
           <p className="text-sm text-gray-500 mb-2">{fullName}</p>

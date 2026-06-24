@@ -3,8 +3,10 @@ import { useState } from 'react';
 import type { RecommendationMatch } from '@/services/recommendationService';
 import { Sparkles, Medal, TrendingUp } from 'lucide-react';
 
-const podiumHeights = ['h-40', 'h-52', 'h-36'];
+const podiumHeights = ['h-52', 'h-40', 'h-36'];
 const podiumRanks = ['#1', '#2', '#3'];
+
+const podiumGridOrder = ['order-1 md:order-2', 'order-2 md:order-1', 'order-3'];
 
 export default function RecommendationsPage() {
   const [hasGenerated, setHasGenerated] = useState(false);
@@ -52,15 +54,20 @@ export default function RecommendationsPage() {
             {[0, 1, 2].map((slotIndex) => {
               const match = matches[slotIndex];
               if (!match) return null;
+              
               return (
-                <div key={match.userId} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                <div 
+                  key={match.userId} 
+                  // Am integrat clasa de ordine vizuală
+                  className={`bg-white border border-gray-200 rounded-xl p-4 shadow-sm ${podiumGridOrder[slotIndex]}`}
+                >
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-xs font-semibold text-gray-500">{podiumRanks[slotIndex]}</span>
                     <Medal size={16} className="text-amber-500" />
                   </div>
                   <div className="flex items-center gap-2">
                     <div className={`w-full rounded-lg ${podiumHeights[slotIndex]} bg-gradient-to-t from-amber-100 to-white flex items-end justify-center`}>
-                      <span className="mb-3 text-sm font-semibold text-gray-700">{match.fullName}</span>
+                      <span className="mb-3 text-sm font-semibold text-gray-700 text-center px-1">{match.fullName}</span>
                     </div>
                   </div>
                 </div>

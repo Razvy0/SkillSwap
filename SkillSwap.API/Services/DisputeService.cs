@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using SkillSwap.Core.DTOs.Disputes;
 using SkillSwap.Core.Entities;
 using SkillSwap.Core.Enums;
@@ -12,12 +13,14 @@ public class DisputeService : IDisputeService
     private readonly IDisputeRepository _disputeRepository;
     private readonly ISwapRepository _swapRepository;
     private readonly IUserRepository _userRepository;
+    private readonly UserManager<AppUser> _userManager;
 
-    public DisputeService(IDisputeRepository disputeRepository, ISwapRepository swapRepository, IUserRepository userRepository)
+    public DisputeService(IDisputeRepository disputeRepository, ISwapRepository swapRepository, IUserRepository userRepository, UserManager<AppUser> userManager)
     {
         _disputeRepository = disputeRepository;
         _swapRepository = swapRepository;
         _userRepository = userRepository;
+        _userManager = userManager;
     }
 
     public async Task<DisputeDto> CreateDisputeAsync(string currentUserId, CreateDisputeDto dto)
@@ -96,4 +99,66 @@ public class DisputeService : IDisputeService
             AdminNotes = d.AdminNotes
         });
     }
+
+    public async Task ResolveDisputeAsync(int disputeId, ResolveDisputeDto dto, string adminId)
+    {
+        var dispute = await _disputeRepository.GetByIdAsync(disputeId) 
+            ?? throw new NotFoundException("Dispute not found.");
+
+        if (dispute.Status != DisputeStatus.Pending)
+            throw new BadRequestException("This dispute has already been resolved or dismissed.");
+
+        var swap = await _swapRepository.GetByIdAsync(dispute.SwapRequestId);
+
+        switch (dto.Action)
+        {
+            case DisputeAction.BanUser:
+                var reportedUser = await _userManager.FindByIdAsync(dispute.ReportedUserId);
+                if (reportedUser != null)
+                {
+                    await _userManager.SetLockoutEndDateAsync(reportedUser, DateTimeOffset.UtcNow.AddYears(100));
+                }
+                break;
+
+            case DisputeAction.DeleteSwap:
+                if (swap != null)
+                {
+                    swap.Status = SwapStatus.Cancelled; 
+                    swap.UpdatedAt = DateTime.UtcNow;
+                    await _swapRepository.UpdateAsync(swap);
+                }
+                break;
+
+            case DisputeAction.Dismiss:
+                break;
+        }
+
+        dispute.Status = dto.Action == DisputeAction.Dismiss ? DisputeStatus.Dismissed : DisputeStatus.Resolved; // [cite: 100]
+        dispute.AdminNotes = dto.AdminNotes;
+        dispute.ResolvedAt = DateTime.UtcNow;
+
+        await _disputeRepository.UpdateAsync(dispute);
+    }
+
+    public async Task<IEnumerable<DisputeDto>> GetAllDisputesAsync()
+{
+    // Fetch all disputes. 
+    // Ensure that your repository's GetAllAsync() includes the Reporter and ReportedUser entities.
+    var disputes = await _disputeRepository.GetAllAsync();
+
+    return disputes.Select(d => new DisputeDto
+    {
+        Id = d.Id,
+        SwapRequestId = d.SwapRequestId,
+        ReporterId = d.ReporterId,
+        ReporterName = d.Reporter.FullName,
+        ReportedUserId = d.ReportedUserId,
+        ReportedUserName = d.ReportedUser.FullName,
+        Reason = d.Reason,
+        Status = d.Status,
+        CreatedAt = d.CreatedAt,
+        ResolvedAt = d.ResolvedAt,
+        AdminNotes = d.AdminNotes
+    });
+}
 }

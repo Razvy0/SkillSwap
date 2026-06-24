@@ -6,10 +6,11 @@ interface AuthState {
   userId: string | null;
   email: string | null;
   fullName: string | null;
+  role: string | null;
   isAuthenticated: boolean;
   lastSeenSwapsAt: string | null;
   lastSeenSwapsByUser: Record<string, string>;
-  setAuth: (data: { token: string; userId: string; email: string; fullName: string }) => void;
+  setAuth: (data: { token: string; userId: string; email: string; fullName: string; role: string }) => void;
   setLastSeenSwapsAt: (value: string) => void;
   logout: () => void;
 }
@@ -21,6 +22,7 @@ export const useAuthStore = create<AuthState>()(
       userId: null,
       email: null,
       fullName: null,
+      role: null,
       isAuthenticated: false,
       lastSeenSwapsAt: null,
       lastSeenSwapsByUser: {},
@@ -34,6 +36,7 @@ export const useAuthStore = create<AuthState>()(
           userId: data.userId,
           email: data.email,
           fullName: data.fullName,
+          role: data.role,
           isAuthenticated: true,
           lastSeenSwapsAt,
         });
@@ -55,6 +58,7 @@ export const useAuthStore = create<AuthState>()(
           userId: null,
           email: null,
           fullName: null,
+          role: null,
           isAuthenticated: false,
           lastSeenSwapsAt: null,
         }),

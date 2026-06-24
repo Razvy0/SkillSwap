@@ -42,4 +42,27 @@ public class DisputesController : ControllerBase
         var result = await _disputeService.GetUserDisputesAsync(currentUserId);
         return Ok(result);
     }
+
+    [HttpGet("all")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetAllDisputes()
+    {
+        var result = await _disputeService.GetAllDisputesAsync();
+        return Ok(result);
+    }
+
+    [HttpPost("{id}/resolve")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ResolveDispute(int id, [FromBody] ResolveDisputeDto dto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(currentUserId))
+            return Unauthorized();
+
+        await _disputeService.ResolveDisputeAsync(id, dto, currentUserId);
+        return Ok();
+    }
 }

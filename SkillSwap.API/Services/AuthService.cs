@@ -39,7 +39,10 @@ public class AuthService : IAuthService
         if (!result.Succeeded)
             throw new BadRequestException(string.Join("; ", result.Errors.Select(e => e.Description)));
 
-        return GenerateToken(user);
+        // Assign default User role
+        await _userManager.AddToRoleAsync(user, "User");
+
+        return await GenerateTokenAsync(user);
     }
 
     public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
@@ -51,38 +54,45 @@ public class AuthService : IAuthService
         if (!validPassword)
             throw new UnauthorizedException("Invalid email or password.");
 
-        return GenerateToken(user);
+        return await GenerateTokenAsync(user);
     }
 
-    private AuthResponseDto GenerateToken(AppUser user)
+    // Change GenerateToken to be asynchronous
+private async Task<AuthResponseDto> GenerateTokenAsync(AppUser user)
+{
+    var jwtSettings = _config.GetSection("Jwt");
+    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Secret"]!));
+    var expiration = DateTime.UtcNow.AddHours(24);
+
+    // Fetch roles
+    var roles = await _userManager.GetRolesAsync(user);
+    var userRole = roles.FirstOrDefault() ?? "User"; // Default to User if none found
+
+    var claims = new List<Claim>
     {
-        var jwtSettings = _config.GetSection("Jwt");
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Secret"]!));
-        var expiration = DateTime.UtcNow.AddHours(24);
+        new(ClaimTypes.NameIdentifier, user.Id),
+        new(ClaimTypes.Email, user.Email!),
+        new(ClaimTypes.Name, user.FullName),
+        new(ClaimTypes.Role, userRole), // <-- Add Role Claim
+        new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+    };
 
-        var claims = new List<Claim>
-        {
-            new(ClaimTypes.NameIdentifier, user.Id),
-            new(ClaimTypes.Email, user.Email!),
-            new(ClaimTypes.Name, user.FullName),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        };
+    var token = new JwtSecurityToken(
+        issuer: jwtSettings["Issuer"],
+        audience: jwtSettings["Audience"],
+        claims: claims,
+        expires: expiration,
+        signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
+    );
 
-        var token = new JwtSecurityToken(
-            issuer: jwtSettings["Issuer"],
-            audience: jwtSettings["Audience"],
-            claims: claims,
-            expires: expiration,
-            signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
-        );
-
-        return new AuthResponseDto
-        {
-            Token = new JwtSecurityTokenHandler().WriteToken(token),
-            UserId = user.Id,
-            Email = user.Email!,
-            FullName = user.FullName,
-            Expiration = expiration
-        };
-    }
+    return new AuthResponseDto
+    {
+        Token = new JwtSecurityTokenHandler().WriteToken(token),
+        UserId = user.Id,
+        Email = user.Email!,
+        FullName = user.FullName,
+        Role = userRole, // <-- Return Role
+        Expiration = expiration
+    };
+}
 }

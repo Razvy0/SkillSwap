@@ -11,6 +11,12 @@ import MessagesPage from '@/pages/MessagesPage';
 import UserProfilePage from '@/pages/UserProfilePage';
 import DisputesPage from '@/pages/DisputesPage';
 import RecommendationsPage from '@/pages/RecommendationsPage';
+import AdminDisputesPage from '@/pages/AdminDisputesPage';
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const role = useAuthStore((s) => s.role);
+  return role === 'Admin' ? <>{children}</> : <Navigate to="/" />;
+}
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -30,6 +36,7 @@ export default function App() {
           </PrivateRoute>
         }
       >
+
         <Route index element={<DashboardPage />} />
         <Route path="recommendations" element={<RecommendationsPage />} />
         <Route path="explore" element={<ExplorePage />} />
@@ -38,6 +45,14 @@ export default function App() {
         <Route path="disputes" element={<DisputesPage />} />
         <Route path="messages" element={<MessagesPage />} />
         <Route path="users/:id" element={<UserProfilePage />} />
+        <Route
+          path="admin/disputes"
+          element={
+            <AdminRoute>
+              <AdminDisputesPage />
+            </AdminRoute>
+          }
+        />
       </Route>
     </Routes>
   );
